@@ -14,3 +14,8 @@ The attached code has already provided a sample of how you can edit the axes uni
 Replacing Images:
 Once you have your vector path ready, use the [SVG Path Editor](https://yqnn.github.io/svg-path-editor/) to crop and resize the image so that it fits the height of the object.
 
+# Radial Histogram 
+
+# Butterfly Chart 
+
+# Waterfall Plot
