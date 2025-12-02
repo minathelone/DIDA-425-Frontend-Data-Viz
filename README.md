@@ -34,3 +34,9 @@ createWaterfallChart("#chart", data, {
   },
   fontScale: 1.3,
 });
+
+- title of graph
+- titles of axis labels
+- color theme
+- positioning for axis labels, tick marks, button (depending on scale of their data, they might need to manually reposition some stuff)
+- size for font (maybe a multiplier across all of the text labels so everything scales up or down together)
