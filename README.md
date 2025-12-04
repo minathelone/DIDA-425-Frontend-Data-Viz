@@ -5,6 +5,10 @@ This is the documentation for Mina Lone, Asia Qin, Maddie Knopf, and Kathryn Che
 
 # Installation 
 
+# Radial Histogram 
+
+# Butterfly Chart 
+
 # Pictorial Charts: Height Comparison
 The Pictorial Chart, specifically for comparing the height of two different objects, uses vector images to visualize data.
 
@@ -14,9 +18,8 @@ The attached code has already provided a sample of how you can edit the axes uni
 Replacing Images:
 Once you have your vector path ready, use the [SVG Path Editor](https://yqnn.github.io/svg-path-editor/) to crop and resize the image so that it fits the height of the object.
 
-# Radial Histogram 
 
-# Butterfly Chart 
+
 
 # Waterfall Plot
 createWaterfallChart("#chart", data, {
