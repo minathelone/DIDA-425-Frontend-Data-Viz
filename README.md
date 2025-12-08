@@ -1,12 +1,42 @@
-# DIDA-425-Frontend-Data-Viz
-This is the documentation for Mina Lone, Asia Qin, Maddie Knopf, and Kathryn Chen's DIDA 425 capstone project. 
+# 🎨 funky-graphs
+A JavaScript library for creating advanced, interactive 3D data visualizations in the browser. Built with various JavaScript libraries for stunning visual effects.
 
-# What Is This Library? 
-
-# Installation 
-Install via npm: 
-
+# Installation and Setting Up Your Environment
+1. Install via npm (write this in the terminal): 
+```bash
 npm install funky-graphs
+```
+2. Set up an HTML file and create a div to host your graph:
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Data Visualization</title>
+    <style>
+        #plotContainer {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #eee;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Revenue Over Time</h1>
+    <div id="plotContainer"></div>
+    <script type="module" src="./app.js"></script>
+</body>
+</html>
+```
+3. Create a javascript file and import the graph(s) of your choice:
+```javascript
+import { createWaterfallPlot } from 'funky-graphs';
+```
+4. Call the function and pass the relevant data and parameters in!
+```javascript
+createWaterfallPlot('./data.csv', 'chart-container', 'light', 'Time', 'Revenue');
+```
+
 # Radial Histogram 
 
 # Butterfly Chart 
