@@ -1,0 +1,65 @@
+{
+  "name": "funky-graphs",
+  "version": "1.0.0",
+  "description": "A JavaScript library for creating non-standard or advanced data visualizations in the browser.",
+  "type": "module",
+  "main": "./dist/funky-graphs.umd.js",
+  "module": "./dist/funky-graphs.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/funky-graphs.es.js",
+      "require": "./dist/funky-graphs.umd.js"
+    },
+    "./waterfall": {
+      "import": "./src/Waterfall/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "data-visualization",
+    "charts",
+    "javascript",
+    "waterfall-plot",
+    "pictorial-graph",
+    "butterfly-chart",
+    "radial-histogram",
+    "threejs"
+  ],
+  "author": "Mina Lone",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/minathelone/DIDA-425-Frontend-Data-Viz.git"
+  },
+  "bugs": {
+    "url": "https://github.com/minathelone/DIDA-425-Frontend-Data-Viz/issues"
+  },
+  "homepage": "https://github.com/minathelone/DIDA-425-Frontend-Data-Viz#readme",
+  "dependencies": {
+    "three": "^0.164.0",
+    "gsap": "^3.12.5",
+    "papaparse": "^5.4.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "peerDependencies": {
+    "three": ">=0.164.0",
+    "gsap": ">=3.12.5"
+  },
+  "peerDependenciesMeta": {
+    "gsap": {
+      "optional": true
+    }
+  }
+}

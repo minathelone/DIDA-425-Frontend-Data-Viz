@@ -1,0 +1,15 @@
+# Generated build output - NEVER commit
+dist/
+
+# Dependencies - users will install them fresh
+node_modules/
+
+# Optional: Lockfile for libraries (see note below)
+# package-lock.json
+
+# Environment & logs
+.env
+*.log
+
+# System files
+.DS_Store

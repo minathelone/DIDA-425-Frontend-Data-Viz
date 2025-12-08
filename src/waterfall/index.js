@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { gsap } from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js';
+import { gsap } from 'gsap';
+import Papa from 'papaparse';
 
 // global vars
 let scene, camera, renderer, raycaster, pointer, controls;
@@ -510,13 +511,24 @@ async function createWaterfallPlot(csv_file, div_name, color_theme, xLabel, yLab
     backButton.addEventListener("click", restore3D);
   });
 
-  try {
-    await loadFont('/fonts/helvetiker_regular.typeface.json');
-  } catch (err) {
-    console.error("Font load failed:", err);
-    return;
-  }
+  // try {
+  //   await loadFont('/fonts/helvetiker_regular.typeface.json');
+  // } catch (err) {
+  //   console.error("Font load failed:", err);
+  //   return;
+  // }
 
+  const fontLoader = new FontLoader();
+  const font = await new Promise((resolve, reject) => {
+    fontLoader.load(
+      'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
+      resolve,
+      undefined,
+      reject
+    );
+  });
+  
+globalFont = font;
   let grouped;
   try {
     const response = await fetch(csv_file);  // fetch the CSV
