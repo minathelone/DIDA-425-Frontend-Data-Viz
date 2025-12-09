@@ -28,6 +28,11 @@ let x_axis_label = null;
 let y_axis_label = null;
 let title_label = null;
 
+let title_x_iso = 0;
+let title_y_iso = 0;
+let title_z_iso = 0;
+let label_off = 0;
+let tick_scaler = 1;
 
 const colors = [0x9999ff, 0xff9999, 0x99ff99, 0xffb84d];
 let data = []; 
@@ -35,8 +40,89 @@ let sliceMeshes = [];
 
 let homeCamPos = new THREE.Vector3();
 let homeCamTarget = new THREE.Vector3();
+let tooltipElement = null;
+let tooltipVisible = false;
 
 // functions
+
+// tooltip helpers
+function initTooltip() {
+  tooltipElement = document.getElementById('chart-tooltip');
+  if (!tooltipElement) {
+    tooltipElement = document.createElement('div');
+    tooltipElement.id = 'chart-tooltip';
+    tooltipElement.style.cssText = `
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      max-width: 300px;
+      z-index: 1000;
+      display: none;
+      backdrop-filter: blur(2px);
+    `;
+    document.body.appendChild(tooltipElement);
+  }
+}
+
+function showTooltip(sliceIndex, worldPosition, points = null) {
+  if (!tooltipElement) initTooltip();
+  if (!allowRaycast) return; 
+  
+  const mesh = sliceMeshes[sliceIndex];
+  let sliceName = "Unknown Slice";
+  let displayPoints = [];
+  
+  if (mesh && mesh.userData.originalData) {
+    sliceName = sliceNames[sliceIndex] || `Slice ${sliceIndex}`;
+    displayPoints = mesh.userData.originalData;  
+    
+    console.log(`Tooltip: ${sliceName}, Points:`, displayPoints);  
+  }
+  
+  // Convert 3D world position to 2D screen position
+  const vector = worldPosition.clone();
+  vector.project(camera);
+  
+  const widthHalf = window.innerWidth / 2;
+  const heightHalf = window.innerHeight / 2;
+  
+  vector.x = (vector.x * widthHalf) + widthHalf;
+  vector.y = -(vector.y * heightHalf) + heightHalf;
+  
+  // Build tooltip content
+  let tooltipHTML = `<div class="tooltip-title">${sliceName}</div>`;
+  
+  if (points && points.length > 0) {
+    tooltipHTML += '<div class="tooltip-points">';
+    // Show first few points
+    const displayPoints = points.slice(0, 10); // Limit to 10 points
+    displayPoints.forEach(point => {
+      tooltipHTML += `<div class="tooltip-point">(${point.x.toFixed(2)}, ${point.y.toFixed(2)})</div>`;
+    });
+    if (points.length > 10) {
+      tooltipHTML += `<div class="tooltip-point">... and ${points.length - 10} more</div>`;
+    }
+    tooltipHTML += '</div>';
+  }
+  
+  tooltipElement.innerHTML = tooltipHTML;
+  tooltipElement.style.left = `${vector.x + 15}px`;
+  tooltipElement.style.top = `${vector.y - 15}px`;
+  tooltipElement.style.display = 'block';
+  tooltipVisible = true;
+}
+
+function hideTooltip() {
+  if (tooltipElement) {
+    tooltipElement.style.display = 'none';
+    tooltipVisible = false;
+  }
+}
 
 function parseWaterfallCSV(csvText) {
   // Remove BOM if present
@@ -81,18 +167,32 @@ function array_average(data){
   return sum/data.length;
 }
 
-function create_shapes(maxX, array, colors, sliceSpacing){
+function create_shapes(maxX, maxY, array, colors, sliceSpacing) {
   const sliceMeshesLocal = [];
+  
+  // Define the actual visible range for data
+  const paddingX = 2; // Padding on x-axis
+  const paddingY = 2; // Padding on y-axis
+  const sideX = maxX + paddingX;
+  const sideY = maxY + paddingY;
+  
   for (let i = 0; i < array.length; i++) {
     const list = array[i];
-    const sideX = maxX + 2;
-
+    
     const shape = new THREE.Shape();
-    shape.moveTo(list[0].x, 0);
+    
+    // Start at bottom-left of shape
+    shape.moveTo(0, 0);
+    
+    // Draw the curve
     for (let j = 0; j < list.length; j++) {
+      // Scale x to use full available width
       const xScaled = (list[j].x / maxX) * sideX;
+      // Use actual y value (no scaling needed as we're using actual coordinates)
       shape.lineTo(xScaled, list[j].y);
     }
+    
+    // Close the shape back to bottom-right
     shape.lineTo((list[list.length - 1].x / maxX) * sideX, 0);
     shape.closePath();
 
@@ -105,11 +205,16 @@ function create_shapes(maxX, array, colors, sliceSpacing){
     });
 
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.z = (i+1) * sliceSpacing;
+    mesh.position.z = (i + 1) * sliceSpacing;
+    
+    mesh.userData.originalData = list;  
+    mesh.userData.originalIndex = i;    
+    
     scene.add(mesh);
     sliceMeshesLocal.push(mesh);
   }
-  return { sliceSpacing, sliceMeshes: sliceMeshesLocal };
+  
+  return { sliceSpacing, sliceMeshes: sliceMeshesLocal, sideX, sideY };
 }
 
 function grab_maxes(array){
@@ -124,9 +229,11 @@ function grab_maxes(array){
   return {maxX: maxValueX, maxY: maxValueY};
 }
 
-function generate_grid(xMax, yMax, array_length, divisions, sliceSpacing){
-  const sideX = xMax + 2;
-  const sideY = yMax + 2;
+function generate_grid(xMax, yMax, array_length, divisions, sliceSpacing) {
+  const paddingX = 2;
+  const paddingY = 2;
+  const sideX = xMax + paddingX;
+  const sideY = yMax + paddingY;
   const sideZ = array_length * sliceSpacing + 1;
 
   function createRectGrid(width, height, divisions) {
@@ -154,12 +261,17 @@ function generate_grid(xMax, yMax, array_length, divisions, sliceSpacing){
   return { sideX, sideY, sideZ, divisions };
 }
 
-function place_ticks(maxXY, divisions, gridSizeXY, material_text, axis, array, sliceSpacing, group, zRotation, offset = 0, zOffset = sliceSpacing * array.length + 1) {
+function place_ticks(maxXY, divisions, gridSizeXY, material_text, axis, array, sliceSpacing, group, zRotation, offset = 0, zOffset = null) {
   if (!globalFont) return;
-
+  
+  // Calculate zOffset if not provided
+  if (zOffset === null) {
+    zOffset = sliceSpacing * array.length + 1;
+  }
+  
   const scale = maxXY / divisions;
   let Ticks = [];
-  for (let x=0; x<= maxXY; x+= scale){
+  for (let x = 0; x <= maxXY; x += scale) {
     Ticks.push(Math.round(x));
   }
   Ticks.push(Math.round(maxXY));
@@ -167,7 +279,7 @@ function place_ticks(maxXY, divisions, gridSizeXY, material_text, axis, array, s
   for (let i = 0; i < Ticks.length; i++) {
     const labelGeo = new TextGeometry(Ticks[i].toString(), {
       font: globalFont,
-      size: 0.5,
+      size: 0.5 * tick_scaler,
       height: 0.0,
       curveSegments: 8,
       bevelEnabled: false
@@ -177,10 +289,11 @@ function place_ticks(maxXY, divisions, gridSizeXY, material_text, axis, array, s
     const textMesh = new THREE.Mesh(labelGeo, material_text);
     textMesh.raycast = () => {};
 
-    const Pos = (Ticks[i] / maxXY) * (gridSizeXY-1);
+    const Pos = Ticks[i]; // This is the actual y-value
 
     if (axis === "x") {
-      textMesh.position.set(Pos, offset, zOffset);
+      const scaledPos = (Pos / maxXY) * gridSizeXY;
+      textMesh.position.set(scaledPos, offset, zOffset);
     } else {
       textMesh.position.set(offset, Pos, zOffset);
     }
@@ -238,6 +351,28 @@ function setupThree(container, theme) {
       focusOnSlice(intersects[0].object, theme);
     }
   });
+  // Initialize tooltip
+  initTooltip();
+  
+  // Add pointer move for tooltip positioning
+  container.addEventListener('pointermove', (event) => {
+    if (tooltipVisible && tooltipElement) {
+      // Update tooltip position based on mouse
+      tooltipElement.style.left = `${event.clientX + 15}px`;
+      tooltipElement.style.top = `${event.clientY - 15}px`;
+    }
+    
+  });
+  
+  // Hide tooltip when mouse leaves container
+  container.addEventListener('pointerleave', () => {
+    hideTooltip();
+  });
+  window.addEventListener('resize', () => {
+    if (tooltipVisible) {
+      hideTooltip();
+    }
+  });
 }
 
 function animate() {
@@ -249,6 +384,9 @@ function animate() {
 
     if (intersects.length > 0) {
       const hit = intersects[0].object;
+      const hitIndex = sliceMeshes.indexOf(hit);
+      
+      // Handle hover highlighting (your existing code)
       if (currentlyHovered !== hit) {
         if (currentlyHovered && currentlyHovered.userData.originalColor) {
           currentlyHovered.material.color.copy(currentlyHovered.userData.originalColor);
@@ -256,18 +394,25 @@ function animate() {
         currentlyHovered = hit;
         if (!hit.userData.originalColor) hit.userData.originalColor = hit.material.color.clone();
         hit.material.color.offsetHSL(0, 0, 0.15);
+        
+        // Show tooltip with data
+        if (hitIndex !== -1 && data[hitIndex]) {
+          const worldPosition = intersects[0].point;
+          showTooltip(hitIndex, worldPosition, data[hitIndex]);
+        }
       }
     } else if (currentlyHovered && currentlyHovered.userData.originalColor) {
       currentlyHovered.material.color.copy(currentlyHovered.userData.originalColor);
       currentlyHovered = null;
+      hideTooltip();
     }
   }
 
   renderer.render(scene, camera);
 }
 
-
 function focusOnSlice(mesh, color_theme) {
+  hideTooltip();
   allowRaycast = false;
   sliceMeshes.forEach(m => m.visible = false);
   mesh.visible = true;
@@ -328,8 +473,10 @@ function focusOnSlice(mesh, color_theme) {
   const sliceIndex = sliceMeshes.indexOf(mesh);
   const sliceName = sliceNames[sliceIndex] || `Slice ${sliceIndex}`;
   const isolatedTitle = `${title_label} (${sliceName})`;
+  
+  console.log(`Isolated view: ${sliceName}, Index: ${sliceIndex}`);
 
-  // FIXED: Check if globalFont is available before creating labels
+
   if (globalFont) {
     createAxisLabels(
       color_theme, 
@@ -345,7 +492,9 @@ function focusOnSlice(mesh, color_theme) {
       sceneParams.data, 
       sceneParams.sliceSpacing, 
       isolabels, 
-      -2, 0, 0
+      -2 - label_off, 0, 0, 
+      0, 0, 0, 
+      1
     );
     createAxisLabels(
       color_theme, 
@@ -361,7 +510,9 @@ function focusOnSlice(mesh, color_theme) {
       sceneParams.data, 
       sceneParams.sliceSpacing, 
       isolabels, 
-      10, 0, 0, 0, -5, 1.5);
+      10, 0, 0, 
+      title_x_iso, title_y_iso, title_z_iso, 
+      1.5);
 
   } else {
     console.warn("Font not loaded yet, skipping axis labels in isolated view");
@@ -425,7 +576,7 @@ function loadFont(url) {
   });
 }
 
-function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, group, offset = 0, tickRo = Math.PI/4, axRo = Math.PI/4, tOffx = 0, tOffz = 0, tscale = 1) {
+function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, group, offset = 0, tickRo = Math.PI/4, axRo = Math.PI/4, tOffx = 0, tOffy = 0,tOffz = 0, tscale = 1) {
 
   if (!globalFont) return;
   let font_color;
@@ -440,18 +591,18 @@ function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, div
   labelXGeo.computeBoundingBox();
   labelXGeo.center();
   const labelXMesh = new THREE.Mesh(labelXGeo, material_text);
-  labelXMesh.position.set(sideX / 2 + tOffx, offset, sideZ + 3 + tOffz);
+  labelXMesh.position.set(sideX / 2 + tOffx, offset + tOffy, sideZ + 3 + tOffz);
   labelXMesh.rotation.x = -axRo;
   labelXMesh.scale.z = 0.001;
   group.add(labelXMesh);
 
 
   if (yLabel != null) {
-    const labelYGeo = new TextGeometry(yLabel, { font: globalFont, size: .5 * scale, height: 0, curveSegments: 8 });
+    const labelYGeo = new TextGeometry(yLabel, { font: globalFont, size: .5 * scale * tscale, height: 0, curveSegments: 8 });
     labelYGeo.computeBoundingBox();
     labelYGeo.center();
     const labelYMesh = new THREE.Mesh(labelYGeo, material_text);
-    labelYMesh.position.set(offset, sideY / 1.5, sideZ + 3);
+    labelYMesh.position.set(offset + tOffx, sideY / 1.5 + tOffy, sideZ + 3 + tOffz);
     labelYMesh.rotation.z = Math.PI / 2;
     labelYMesh.rotation.y = axRo;
     labelYMesh.scale.z = 0.001;
@@ -552,7 +703,10 @@ function adjustCameraToScene() {
   rememberHomeCamera();
 }
 
-async function createWaterfallPlot(csv_file, div_name, color_theme, title, xLabel, yLabel, label_scale = 1) {
+async function createWaterfallPlot(csv_file, div_name, color_theme, title, 
+  title_x, title_y, title_z, 
+  title_x2, title_y2, title_z2,
+  xLabel, yLabel, label_offset, label_scale = 1, tick_scale = 1) {
   console.log("Papa:", Papa);
   const container = document.getElementById(div_name);
   setupThree(container, color_theme);  
@@ -562,13 +716,6 @@ async function createWaterfallPlot(csv_file, div_name, color_theme, title, xLabe
     const backButton = document.getElementById("backButton");
     backButton.addEventListener("click", restore3D);
   });
-
-  // try {
-  //   await loadFont('/fonts/helvetiker_regular.typeface.json');
-  // } catch (err) {
-  //   console.error("Font load failed:", err);
-  //   return;
-  // }
 
   const fontLoader = new FontLoader();
   const font = await new Promise((resolve, reject) => {
@@ -596,18 +743,32 @@ globalFont = font;
     return;
   }
 
-  const slices = Object.keys(grouped); // names of slices for tooltip hovering later 
-  sliceNames = slices
+  const originalSliceNames = Object.keys(grouped);
+  
+  const slicesWithAverages = originalSliceNames.map((name, index) => ({
+    name,
+    data: data[index],
+    average: array_average(data[index])
+  }));
+  
+  slicesWithAverages.sort((a, b) => b.average - a.average);
+  
+  data = slicesWithAverages.map(slice => slice.data);
+  sliceNames = slicesWithAverages.map(slice => slice.name);  
+  
+  console.log("Sorted slice names:", sliceNames);  
 
-  data.sort((a, b) => array_average(b) - array_average(a));
+  const slices = Object.keys(grouped); 
 
   const { maxX, maxY } = grab_maxes(data);
   globalMaxX = maxX;
-  const { sliceSpacing, sliceMeshes: createdSlices } = create_shapes(maxX, data, colors, 1.5);
+  
+  // Pass maxY to create_shapes and get sideX, sideY back
+  const { sliceSpacing, sliceMeshes: createdSlices, sideX, sideY } = create_shapes(maxX, maxY, data, colors, 1.5);
   sliceMeshes = createdSlices;
 
   const len = data.length;
-  const { sideX, sideY, sideZ, divisions } = generate_grid(maxX, maxY, len, 10, sliceSpacing);
+  const { sideZ, divisions } = generate_grid(maxX, maxY, len, 10, sliceSpacing);
   
   // storing in sceneParams so focusOnSlice can access
   sceneParams.sideX = sideX;
@@ -627,8 +788,16 @@ globalFont = font;
   x_axis_label = xLabel
   y_axis_label = yLabel
   title_label = title
-  createAxisLabels(color_theme, xLabel, yLabel, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels);
-  createAxisLabels(color_theme, title, null, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels, 15, Math.PI/4, Math.PI/4, 6, -5, 1.5);
+
+  title_x_iso = title_x2
+  title_y_iso = title_y2
+  title_z_iso = title_z2
+
+  label_off = label_offset
+  tick_scaler = tick_scale
+
+  createAxisLabels(color_theme, xLabel, yLabel, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels, -label_offset);
+  createAxisLabels(color_theme, title, null, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels, 15, Math.PI/4, Math.PI/4, 6 + title_x, 5 + title_y,-5 + title_z, 1.5);
 
   rememberHomeCamera();
   animate();
