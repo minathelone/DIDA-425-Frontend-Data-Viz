@@ -1,0 +1,47 @@
+p{
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size:x-large;
+  font-style: bold;
+  text-align: center;
+    
+}
+p1{
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+
+body{
+     background-color: lightblue;
+}
+
+#options-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+#options-wrapper button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: rgb(113, 113, 255);
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+#options-wrapper button.active {
+  background: #2c5fa8;
+}
+
+
+.highcharts-background {
+    transition: all 250ms;
+}
+
