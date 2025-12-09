@@ -1,8 +1,3 @@
-// Root index.js that re-exports the butterfly chart wrapper
-
-// Butterfly chart wrapper module
-// Requires d3 v7 loaded globally in the page (via <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>)
-
 export function createButterflyChart({
   containerSelector = '#chart',
   statusSelector = '#statusMsg',
@@ -12,8 +7,6 @@ export function createButterflyChart({
   chartTitle: chartTitleParam,
   initialMode: initialModeParam
 } = {}) {
-  // Allow caller to override the customizable parts, but fall back to
-  // the same defaults you had in index.html / Butterfly Chart.html.
   const labels = labelsParam || { left: 'Exports', right: 'Imports' };
 
   const DATA_SOURCE = dataSource || {
@@ -33,8 +26,6 @@ export function createButterflyChart({
     if (headerTitle) headerTitle.textContent = chartTitle;
   } catch (e) {}
 
-  // ============================ Original chart implementation ============================
-
   function parseNum(v){
     if (v == null || v === '') return NaN;
     const cleaned = String(v).trim().replace(',', '.');
@@ -42,7 +33,6 @@ export function createButterflyChart({
     return Number.isNaN(n) ? NaN : n;
   }
 
-  /* Loader: turn CSV/JSON into { age, male, female } rows. */
   let lastLoadInfo = { total: 0, shown: 0 };
 
   async function loadData() {
@@ -575,5 +565,4 @@ export function createButterflyChart({
   svg.style("opacity",0).transition().duration(800).ease(d3.easeCubicOut).style("opacity",1);
 }
 
-// Named export for consumers (optional default export)
-export { createButterflyChart as default };
+export { createButterflyChart };
