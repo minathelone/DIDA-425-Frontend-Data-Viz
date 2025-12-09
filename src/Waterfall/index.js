@@ -11,6 +11,7 @@ let scene, camera, renderer, raycaster, pointer, controls;
 let gridGroup;      
 let labels;  // group for the 3d axes labels and ticks 
 let isolabels; // group for iso axes labels and ticks
+let sliceNames;
 
 // let isolatedGrid = null; 
 let allowRaycast = true;
@@ -23,7 +24,10 @@ let sceneParams = {};
 
 // parameters for focusonSlice to access
 let fontScale =null;
-let labelOffset =null;
+let x_axis_label = null;
+let y_axis_label = null;
+let title_label = null;
+
 
 const colors = [0x9999ff, 0xff9999, 0x99ff99, 0xffb84d];
 let data = []; 
@@ -262,6 +266,7 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+
 function focusOnSlice(mesh, color_theme) {
   allowRaycast = false;
   sliceMeshes.forEach(m => m.visible = false);
@@ -288,7 +293,7 @@ function focusOnSlice(mesh, color_theme) {
   
   // Calculate the maximum dimension for camera distance
   const maxDim = Math.max(size.x, size.y, size.z);
-  const distance = maxDim * 3; // Adjust multiplier as needed
+  const distance = maxDim * 3;
   
   // Calculate target (center of the slice)
   const target = new THREE.Vector3(
@@ -297,10 +302,10 @@ function focusOnSlice(mesh, color_theme) {
     mesh.position.z
   );
   
-  // Calculate camera position (behind and above the slice)
+  // Calculate camera position
   const cameraPos = new THREE.Vector3(
     center.x,
-    center.y, //+ distance * 0.5,
+    center.y,
     mesh.position.z + distance
   );
   
@@ -316,10 +321,54 @@ function focusOnSlice(mesh, color_theme) {
     target
   );
   
-  isolabels = new THREE.Group()
-  scene.add(isolabels)
+  // Create new group for isolated labels
+  isolabels = new THREE.Group();
+  scene.add(isolabels);
 
-  createAxisLabels(color_theme, "time in years since 2020","revenue in billions", fontScale,sceneParams.sideX, sceneParams.sideY, sceneParams.sideZ, sceneParams.divisions, sceneParams.maxX, sceneParams.maxY, sceneParams.data, sceneParams.sliceSpacing, isolabels, -2, 0, 0);
+  const sliceIndex = sliceMeshes.indexOf(mesh);
+  const sliceName = sliceNames[sliceIndex] || `Slice ${sliceIndex}`;
+  const isolatedTitle = `${title_label} (${sliceName})`;
+
+  // FIXED: Check if globalFont is available before creating labels
+  if (globalFont) {
+    createAxisLabels(
+      color_theme, 
+      x_axis_label,
+      y_axis_label, 
+      fontScale,
+      sceneParams.sideX, 
+      sceneParams.sideY, 
+      sceneParams.sideZ, 
+      sceneParams.divisions, 
+      sceneParams.maxX, 
+      sceneParams.maxY, 
+      sceneParams.data, 
+      sceneParams.sliceSpacing, 
+      isolabels, 
+      -2, 0, 0
+    );
+    createAxisLabels(
+      color_theme, 
+      isolatedTitle, 
+      null, 
+      fontScale,
+      sceneParams.sideX, 
+      sceneParams.sideY, 
+      sceneParams.sideZ, 
+      sceneParams.divisions, 
+      sceneParams.maxX, 
+      sceneParams.maxY, 
+      sceneParams.data, 
+      sceneParams.sliceSpacing, 
+      isolabels, 
+      10, 0, 0, 0, -5, 1.5);
+
+  } else {
+    console.warn("Font not loaded yet, skipping axis labels in isolated view");
+  }
+
+  console.log(sliceName)
+  
   document.getElementById("backButton").style.display = "block";
 }
 
@@ -376,7 +425,7 @@ function loadFont(url) {
   });
 }
 
-function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, group, offset = 0, tickRo = Math.PI/4, axRo = Math.PI/4) {
+function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, group, offset = 0, tickRo = Math.PI/4, axRo = Math.PI/4, tOffx = 0, tOffz = 0, tscale = 1) {
 
   if (!globalFont) return;
   let font_color;
@@ -387,24 +436,27 @@ function createAxisLabels(theme, xLabel, yLabel, scale, sideX, sideY, sideZ, div
     }
   const material_text = new THREE.MeshBasicMaterial({ color: font_color, side: THREE.DoubleSide });
 
-  const labelXGeo = new TextGeometry(xLabel, { font: globalFont, size: .5 * scale, height: 0, curveSegments: 8 });
+  const labelXGeo = new TextGeometry(xLabel, { font: globalFont, size: .5 * scale * tscale, height: 0, curveSegments: 8 });
   labelXGeo.computeBoundingBox();
   labelXGeo.center();
   const labelXMesh = new THREE.Mesh(labelXGeo, material_text);
-  labelXMesh.position.set(sideX / 2, offset, sideZ + 3);
+  labelXMesh.position.set(sideX / 2 + tOffx, offset, sideZ + 3 + tOffz);
   labelXMesh.rotation.x = -axRo;
   labelXMesh.scale.z = 0.001;
   group.add(labelXMesh);
 
-  const labelYGeo = new TextGeometry(yLabel, { font: globalFont, size: .5 * scale , height: 0, curveSegments: 8 });
-  labelYGeo.computeBoundingBox();
-  labelYGeo.center();
-  const labelYMesh = new THREE.Mesh(labelYGeo, material_text);
-  labelYMesh.position.set(offset, sideY/ 1.5, sideZ + 3);
-  labelYMesh.rotation.z = Math.PI / 2;
-  labelYMesh.rotation.y = axRo;
-  labelYMesh.scale.z = 0.001;
-  group.add(labelYMesh);
+
+  if (yLabel != null) {
+    const labelYGeo = new TextGeometry(yLabel, { font: globalFont, size: .5 * scale, height: 0, curveSegments: 8 });
+    labelYGeo.computeBoundingBox();
+    labelYGeo.center();
+    const labelYMesh = new THREE.Mesh(labelYGeo, material_text);
+    labelYMesh.position.set(offset, sideY / 1.5, sideZ + 3);
+    labelYMesh.rotation.z = Math.PI / 2;
+    labelYMesh.rotation.y = axRo;
+    labelYMesh.scale.z = 0.001;
+    group.add(labelYMesh);
+  }
 
   place_ticks(maxX, divisions, sideX, material_text, "x", data, sliceSpacing, group, tickRo, -1);
   place_ticks(maxY, divisions, sideY, material_text, "y", data, sliceSpacing, group, tickRo, -1);
@@ -500,7 +552,7 @@ function adjustCameraToScene() {
   rememberHomeCamera();
 }
 
-async function createWaterfallPlot(csv_file, div_name, color_theme, xLabel, yLabel, label_scale = 1) {
+async function createWaterfallPlot(csv_file, div_name, color_theme, title, xLabel, yLabel, label_scale = 1) {
   console.log("Papa:", Papa);
   const container = document.getElementById(div_name);
   setupThree(container, color_theme);  
@@ -544,7 +596,8 @@ globalFont = font;
     return;
   }
 
-  const sliceNames = Object.keys(grouped); // names of slices for tooltip hovering later 
+  const slices = Object.keys(grouped); // names of slices for tooltip hovering later 
+  sliceNames = slices
 
   data.sort((a, b) => array_average(b) - array_average(a));
 
@@ -570,11 +623,16 @@ globalFont = font;
   scene.add(labels)
 
   fontScale = label_scale 
+
+  x_axis_label = xLabel
+  y_axis_label = yLabel
+  title_label = title
   createAxisLabels(color_theme, xLabel, yLabel, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels);
-  
+  createAxisLabels(color_theme, title, null, fontScale,sideX, sideY, sideZ, divisions, maxX, maxY, data, sliceSpacing, labels, 15, Math.PI/4, Math.PI/4, 6, -5, 1.5);
 
   rememberHomeCamera();
   animate();
 }
 
 export { createWaterfallPlot };
+
