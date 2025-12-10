@@ -62,6 +62,7 @@ Replacing Images:
 When opening up your SVG file, click inspect and copy the path. 
 Once you have your vector path ready, use the [SVG Path Editor](https://yqnn.github.io/svg-path-editor/) to crop and resize the image so that it fits the height of the object. [Tip: Make sure your image is at the center of the x-axis and almost touching the y-axis.]
 
+Exporting
 Adjusting the Code:
 1. Replace the property names with your appropriate data information, including your SVG paths that you want to compare.
 ```javascript
