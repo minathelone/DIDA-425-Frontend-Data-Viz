@@ -310,11 +310,83 @@ const { chart, toggleShape } = createPictorialGraph({
 });
 ```
 
-## Setup 
+## Setup: HTML and CSS
+
+```html
+<body>
+        <figure class="highcharts-figure">
+         <div id="container"></div>
+        </figure>
+        
+<!-- These buttons are from the sample graphs and can be changed accordingly.-->
 <div id="options-wrapper"> 
- <button data-type="property1">Name1</button>
-   <button data-type="property2">Name2</button>
- <button data-type="property3 ">Name3</button>
+ <button data-type="property1">Placeholder</button>
+ <button data-type="person">Human</button>
+</div>
+
+    <div class="controls">
+        <p>Color theme
+        <p1>
+        <label>
+            <input type="radio" name="color-mode" value="light">
+            Light
+        </label>
+        <label>
+            <input type="radio" name="color-mode" value="dark">
+            Dark
+        </label></p1></p>
+    </div>
+</figure>
+```
+```css
+p{
+  font-family: "Poppins", sans-serif;
+  font-weight: 800;
+  font-size:x-large;
+  font-style: bold;
+  text-align: center;
+    
+}
+p1{
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+}
+
+body{
+     background-color: lightblue;
+}
+
+#options-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+#options-wrapper button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: rgb(62, 62, 205);
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+  font-family:'Poppins', sans-serif;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+#options-wrapper button.active {
+  background: #311a86;
+}
+
+
+.highcharts-background {
+    transition: all 250ms;
+}
+
+```
+
 ## Parameters
 ### *property*: 
 (string) The id of the html div container that you want to host your pictorial graph in.  
