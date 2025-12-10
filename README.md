@@ -328,8 +328,11 @@ const { chart, toggleShape } = createPictorialGraph({
 ### *color*: 
 (string) The color you want your image to be.  
 
-### *path and max*: 
+### *path*: 
 (string) The SVG file you'd like to replace
+
+### *max *: 
+(int) The number of images you want. In this case, it would match the height unless you want to crop the image more. (>value)
 
 ### *containerID*: 
 (string) Type of container you want
