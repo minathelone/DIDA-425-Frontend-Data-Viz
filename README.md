@@ -70,7 +70,7 @@ createButterflyChart({
   initialMode: 'dark'                     // color theme
 });
 ```
-<img width="2132" height="818" alt="image" src="https://github.com/user-attachments/assets/7a20d4bf-5474-4bf5-b0d3-5ba986d703d7" />
+<img width="1170" height="695" alt="butterfly-main" src="https://github.com/user-attachments/assets/644fc540-c8ab-488d-8e03-46ec2c0887cc" />
 
 ### **Pictorial Graph**  
 Check out the [documentation](Documentation/PictorialGraph.md)
