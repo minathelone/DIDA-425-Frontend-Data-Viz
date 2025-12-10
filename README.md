@@ -50,7 +50,7 @@ createWaterfallPlot('./data.csv', 'chart-container', 'light', 'Time', 'Revenue')
 ```
 <img width="646" height="651" alt="Screen Shot 2025-12-09 at 11 46 41 PM" src="https://github.com/user-attachments/assets/c18941c1-5cb2-45a1-852a-59616f17af4f" />
 
-##Setup
+## Setup
 ```html
 <div id="chart-container">
     <svg id="radial-histogram"></svg>
@@ -62,8 +62,8 @@ createWaterfallPlot('./data.csv', 'chart-container', 'light', 'Time', 'Revenue')
     <button id="reset">Reset</button>
 </div>
 ```
-##Parameters
-###**jsonFile**: 
+## Parameters
+### **jsonFile**: 
 ```
 [ {"title":"Inception","genre":"Sci-Fi","minutes_watched":540000,"unique_viewers":230000,"rating":8.8},
   {"title":"Barbie","genre":"Comedy","minutes_watched":720000,"unique_viewers":310000,"rating":7.1},
@@ -85,7 +85,7 @@ createWaterfallPlot('./data.csv', 'chart-container', 'light', 'Time', 'Revenue')
 ### *categoryKey*: 
 (string) The title for your x axis.  
 
-##Example Use and Output
+## Example Use and Output
 
 
 
