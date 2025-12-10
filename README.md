@@ -281,8 +281,8 @@ createButterflyChart({
 <img width="1066" height="409" alt="butterfly-detail" src="https://github.com/user-attachments/assets/1681c930-438f-4f43-9cfb-e8ede6fa6143" />
 
 
-# Pictorial Charts: Height Comparison
-The Pictorial Chart, specifically for comparing the height of different objects, uses vector images to visualize data.
+# Pictorial Graphs: Height Comparison
+The Pictorial Graph, specifically for comparing the height of different objects, uses vector images to visualize data.
 
  Setting up:
 The attached code provides a sample of how to edit the axes units, replace SVG paths, and add new objects to the graph.
@@ -291,9 +291,6 @@ Replacing Images:
 When opening up your SVG file, click inspect and copy the path. 
 Once you have your vector path ready, use the [SVG Path Editor](https://yqnn.github.io/svg-path-editor/) to crop and resize the image so that it fits the height of the object. [Tip: Make sure your image is at the center of the x-axis and almost touching the y-axis.]
 
-
-# Pictorial Charts: Height Comparison
-The Pictorial Chart, specifically for comparing the height of different objects, uses vector images to visualize data.
 
  Setting up:
 The attached code provides a sample of how to edit the axes units, replace SVG paths, and add new objects to the graph.
@@ -311,7 +308,7 @@ const shapes = {
   },
 };
 
-const { chart, toggleShape } = createPictorialChart({
+const { chart, toggleShape } = createPictorialGraph({
   containerId: ' ',
   title: ' ',
   xAxis: { categories: [' '] },
@@ -357,7 +354,7 @@ const { chart, toggleShape } = createPictorialChart({
 
 ## Example Use And Output
 ```javascript
-import { createPictorialChart } from './createPictorialChart.js';
+import { createPictorialGraph } from './index.js';
 
 const shapes = {
   person: {
