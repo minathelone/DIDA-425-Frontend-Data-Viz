@@ -1,4 +1,4 @@
-export function createButterflyChart({ // remove
+export function createButterflyChart({
   containerSelector = '#chart',
   statusSelector = '#statusMsg',
   sortButtonSelector = '#sortBtn',
@@ -96,7 +96,7 @@ export function createButterflyChart({ // remove
     theme: 'DarkPG',
     grid: false,
     showValues: false,
-    sortByDiff: false
+    sortByDiff: true
   };
 
   if (typeof initialMode === 'string'){
