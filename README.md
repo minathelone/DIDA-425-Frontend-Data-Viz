@@ -378,6 +378,23 @@ const { chart, toggleShape } = createPictorialChart({
   legend: { enabled: true },
   shapes
 });
+
+// Hook button clicks
+document.querySelectorAll('#options-wrapper button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    toggleShape(btn.dataset.type, btn);
+  });
+});
+
+// Color mode switcher
+document.querySelectorAll('input[name="color-mode"]').forEach(input => {
+  input.addEventListener('click', e => {
+    document.getElementById('container').className =
+      e.target.value === 'none'
+        ? ''
+        : `highcharts-${e.target.value}`;
+  });
+});
 ```
 <img width="883" height="267" alt="Image" src="https://github.com/user-attachments/assets/ccbf6344-a2be-4356-aa89-c71b2e1e61b1" />
 
