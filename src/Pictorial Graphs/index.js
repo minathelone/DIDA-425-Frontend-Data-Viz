@@ -119,7 +119,7 @@ document.querySelectorAll('#options-wrapper button').forEach(btn => {
 
 export function createPictorialGraph({
   containerId = 'container',
-  title = 'Pictorial Graph',
+  title = 'Pictorial Chart',
   xAxis = { categories: ['Type'] },
   yAxis = { labels: { format: '{value}' } },
   legend = { enabled: true },
@@ -179,7 +179,4 @@ export function createPictorialGraph({
 
   return { chart, toggleShape };
 }
-
-
-
 
