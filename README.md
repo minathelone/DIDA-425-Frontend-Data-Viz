@@ -131,5 +131,5 @@ createWaterfallPlot("./public/revenues.csv", // path of the csv
     1.1 // scaling tick size 
 ); 
 ```
-<img width="900" height="897" alt="image" src="https://github.com/user-attachments/assets/3809c462-c3b3-4506-8e36-5763b06135e7" />
+<img width="600" height="600" alt="image" src="https://github.com/user-attachments/assets/3809c462-c3b3-4506-8e36-5763b06135e7" />
 
