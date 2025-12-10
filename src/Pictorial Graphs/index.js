@@ -1,4 +1,5 @@
 
+
 export function createPictorialGraph({
   containerId = 'container',
   title = 'Pictorial Chart',
@@ -6,11 +7,13 @@ export function createPictorialGraph({
   yAxis = { labels: { format: '{value}' } },
   legend = { enabled: true },
   shapes = {},
+  buttonsSelector = null,
+  colorModeSelector = null
 }) {
   const activeShapes = {};
 
-  // Initialize the Highcharts pictorial chart
-  let chart = Highcharts.chart(containerId, {
+  // Create Highcharts pictorial graph
+  const chart = Highcharts.chart(containerId, {
     chart: { type: 'pictorial' },
     title: { text: title },
     xAxis,
@@ -19,13 +22,12 @@ export function createPictorialGraph({
     series: []
   });
 
-
+  // Toggle logic
   function toggleShape(type, buttonElement = null) {
     if (!shapes[type]) {
-      console.error(`Shape "${type}" was not found in shapes object`);
+      console.error(`Shape "${type}" does not exist.`);
       return;
     }
-
 
     if (activeShapes[type]) {
       const index = activeShapes[type].seriesIndex;
@@ -34,7 +36,7 @@ export function createPictorialGraph({
 
       if (buttonElement) buttonElement.classList.remove('active');
 
-
+      // Re-index series
       chart.series.forEach((s, i) => {
         const key = s.userOptions.key;
         if (activeShapes[key]) activeShapes[key].seriesIndex = i;
@@ -43,7 +45,7 @@ export function createPictorialGraph({
     } else {
       const s = shapes[type];
 
-      const newSeries = chart.addSeries({
+      chart.addSeries({
         key: type,
         name: s.name,
         data: [s.value],
@@ -59,8 +61,27 @@ export function createPictorialGraph({
     }
   }
 
-  return { chart, toggleShape };
-}
+  // Auto-bind buttons
+  if (buttonsSelector) {
+    document.querySelectorAll(buttonsSelector).forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleShape(btn.dataset.type, btn);
+      });
+    });
+  }
+
+  // Auto-bind color mode toggles
+  if (colorModeSelector) {
+    document.querySelectorAll(colorModeSelector).forEach(input => {
+      input.addEventListener('click', e => {
+        document.getElementById(containerId).className =
+          e.target.value === 'none'
+            ? ''
+            : `highcharts-${e.target.value}`;
+      });
+    });
+  }
+
   return { chart, toggleShape };
 }
 
